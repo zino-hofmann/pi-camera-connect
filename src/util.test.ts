@@ -11,7 +11,10 @@ test('spawnPromise() returns stdout from child process', async () => {
 test('spawnPromise() throws error when child process prints to stderr', () => {
   const textToPrint = 'This should be an error!';
 
-  const promise = spawnPromise('/bin/sh', ['-c', `printf "${textToPrint}" 1>&2`]);
+  const promise = spawnPromise('/bin/sh', [
+    '-c',
+    `printf "${textToPrint}" 1>&2`,
+  ]);
 
   expect(promise).rejects.toMatchObject(new Error(textToPrint));
 });

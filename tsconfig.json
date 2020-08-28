@@ -1,10 +1,28 @@
 {
-  "extends": "@lcdev/tsconfig",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist"
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["esnext", "dom"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "pretty": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2018",
+    "resolveJsonModule": true,
+    "rootDir": "src",
+    "outDir": "build",
+    "incremental": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"],
-  "references": []
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/__mocks__/*.ts", "**/*.spec.ts"]
 }

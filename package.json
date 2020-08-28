@@ -1,51 +1,45 @@
 {
-  "name": "pi-camera-connect",
-  "version": "0.3.2",
+  "name": "@zino-hofmann/pi-camera-connect",
+  "version": "1.0.1",
   "description": "Library to capture and stream Raspberry Pi camera data directly to NodeJS",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "author": {
-    "name": "Launchcode",
-    "email": "admin@lc.dev",
-    "url": "https://lc.dev"
-  },
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "author": "Zino Hofmann B.V.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/launchcodedev/pi-camera-connect"
+    "url": "https://github.com/zino-hofmann/pi-camera-connect"
   },
   "scripts": {
-    "build": "tsc -b",
-    "clean": "rm -rf dist *.tsbuildinfo",
-    "lint": "eslint --ext .ts,.tsx src",
-    "fix": "eslint --ext .ts,.tsx src --fix",
-    "test": "jest --runInBand",
-    "prepublishOnly": "yarn clean && yarn build"
+    "commit": "git-cz",
+    "lint": "eslint . --ext .js,.ts,.tsx",
+    "lint:fix": "npm run lint -- --fix",
+    "test": "NODE_ENV=test jest . --maxWorkers=8 --logHeapUsage",
+    "test:coverage": "npm run test -- --coverage",
+    "test:watch": "NODE_ENV=test jest . --maxWorkers=50% --logHeapUsage --watchAll --coverage",
+    "build": "tsc -p .",
+    "build:watch": "npm run build -- --watch",
+    "clean": "rimraf build tsconfig.tsbuildinfo",
+    "clean:install": "rimraf package-lock.json node_modules && npm cache verify && npm install"
   },
   "dependencies": {
-    "systeminformation": "4"
+    "systeminformation": "^4.27.3"
   },
   "devDependencies": {
-    "@lcdev/eslint-config": "0.2",
-    "@lcdev/jest": "0.2",
-    "@lcdev/prettier": "0.1",
-    "@lcdev/tsconfig": "0.1",
-    "@types/jest": "25",
-    "@types/node": "*",
-    "eslint": "6",
-    "jest": "25",
-    "prettier": "1",
-    "typescript": "3"
-  },
-  "jest": {
-    "preset": "@lcdev/jest"
-  },
-  "prettier": "@lcdev/prettier",
-  "eslintConfig": {
-    "extends": "@lcdev",
-    "rules": {
-      "no-constant-condition": 0,
-      "no-shadow": 0
-    }
+    "@types/node": "^14.6.0",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
+    "commitizen": "^4.2.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^7.7.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "jest": "^26.4.2",
+    "jest-junit": "^11.1.0",
+    "prettier": "^2.1.1",
+    "ts-jest": "^26.3.0",
+    "typescript": "^4.0.2"
   }
 }

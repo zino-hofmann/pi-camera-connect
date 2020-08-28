@@ -24,7 +24,7 @@ test('Method createStream() returns a stream of video data', async () => {
   const videoStream = streamCamera.createStream();
 
   // Wait 300 ms for data to arrive
-  await new Promise(resolve => setTimeout(() => resolve(), 300));
+  await new Promise((resolve) => setTimeout(() => resolve(), 300));
 
   const data = videoStream.read();
 
@@ -45,7 +45,7 @@ test('StreamCamera can push to multiple streams', async () => {
   const videoStream2 = streamCamera.createStream();
 
   // Wait 300 ms for data to arrive
-  await new Promise(resolve => setTimeout(() => resolve(), 300));
+  await new Promise((resolve) => setTimeout(() => resolve(), 300));
 
   const data1 = videoStream1.read();
   const data2 = videoStream2.read();
@@ -74,8 +74,12 @@ test('Method stopCapture() ends all streams', async () => {
   videoStream1.resume();
   videoStream2.resume();
 
-  const stream1EndPromise = new Promise(resolve => videoStream1.on('end', () => resolve()));
-  const stream2EndPromise = new Promise(resolve => videoStream2.on('end', () => resolve()));
+  const stream1EndPromise = new Promise((resolve) =>
+    videoStream1.on('end', () => resolve())
+  );
+  const stream2EndPromise = new Promise((resolve) =>
+    videoStream2.on('end', () => resolve())
+  );
 
   await streamCamera.stopCapture();
 

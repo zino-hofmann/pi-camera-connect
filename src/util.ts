@@ -1,6 +1,10 @@
 import { spawn, SpawnOptions } from 'child_process';
 
-export const spawnPromise = (command: string, args?: Array<string>, options?: SpawnOptions) =>
+export const spawnPromise = (
+  command: string,
+  args?: Array<string>,
+  options?: SpawnOptions
+): Promise<Buffer> =>
   new Promise<Buffer>((resolve, reject) => {
     const childProcess = spawn(command, args ?? [], options ?? {});
 
@@ -19,18 +23,21 @@ export const spawnPromise = (command: string, args?: Array<string>, options?: Sp
 
     childProcess.stdout.on(
       'data',
-      (data: Buffer) => (stdoutData = Buffer.concat([stdoutData, data])),
+      // eslint-disable-next-line no-return-assign
+      (data: Buffer) => (stdoutData = Buffer.concat([stdoutData, data]))
     );
     childProcess.stdout.once('error', (err: Error) => reject(err));
 
     childProcess.stderr.on(
       'data',
-      (data: Buffer) => (stderrData = Buffer.concat([stderrData, data])),
+      // eslint-disable-next-line no-return-assign
+      (data: Buffer) => (stderrData = Buffer.concat([stderrData, data]))
     );
     childProcess.stderr.once('error', (err: Error) => reject(err));
 
     childProcess.stdout.on('close', () => {
-      if (stderrData.length > 0) return reject(new Error(stderrData.toString()));
+      if (stderrData.length > 0)
+        return reject(new Error(stderrData.toString()));
 
       return resolve(stdoutData);
     });

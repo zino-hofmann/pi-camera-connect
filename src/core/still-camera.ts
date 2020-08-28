@@ -1,5 +1,6 @@
 import * as si from 'systeminformation';
-import { AwbMode, ExposureMode, Flip, Rotation } from '..';
+
+import { AwbMode, ExposureMode, Flip, Rotation } from '../typings';
 import { spawnPromise } from '../util';
 import { getSharedArgs } from './shared-args';
 
@@ -23,7 +24,11 @@ export interface StillOptions {
 }
 
 export default class StillCamera {
-  private readonly options: StillOptions;
+  private readonly options: StillOptions & {
+    rotation: Rotation;
+    flip: Flip;
+    delay: number;
+  };
 
   constructor(options: StillOptions = {}) {
     this.options = {
@@ -34,8 +39,9 @@ export default class StillCamera {
     };
   }
 
-  static async getJpegSignature() {
+  static async getJpegSignature(): Promise<Buffer> {
     const systemInfo = await si.system();
+
     switch (systemInfo.model) {
       case 'BCM2711':
       case 'BCM2835 - Pi 3 Model B':
@@ -46,12 +52,12 @@ export default class StillCamera {
         return Buffer.from([0xff, 0xd8, 0xff, 0xe1]);
       default:
         throw new Error(
-          `Could not determine JPEG signature. Unknown system model '${systemInfo.model}'`,
+          `Could not determine JPEG signature. Unknown system model '${systemInfo.model}'`
         );
     }
   }
 
-  async takeImage() {
+  async takeImage(): Promise<Buffer> {
     try {
       return await spawnPromise('raspistill', [
         /**
@@ -63,7 +69,7 @@ export default class StillCamera {
          * Capture delay (ms)
          */
         '--timeout',
-        this.options.delay!.toString(),
+        this.options.delay.toString(),
 
         /**
          * Do not display preview overlay on screen
@@ -79,7 +85,7 @@ export default class StillCamera {
     } catch (err) {
       if (err.code === 'ENOENT') {
         throw new Error(
-          "Could not take image with StillCamera. Are you running on a Raspberry Pi with 'raspistill' installed?",
+          "Could not take image with StillCamera. Are you running on a Raspberry Pi with 'raspistill' installed?"
         );
       }
 

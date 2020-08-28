@@ -2,7 +2,8 @@ import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import * as stream from 'stream';
 import * as si from 'systeminformation';
-import { AwbMode, ExposureMode, Flip, Rotation } from '..';
+
+import { AwbMode, ExposureMode, Flip, Rotation } from '../typings';
 import { getSharedArgs } from './shared-args';
 
 export enum Codec {
@@ -50,7 +51,9 @@ declare interface StreamCamera {
 
 class StreamCamera extends EventEmitter {
   private readonly options: StreamOptions;
+
   private childProcess?: ChildProcessWithoutNullStreams;
+
   private streams: Array<stream.Readable> = [];
 
   constructor(options: StreamOptions = {}) {
@@ -67,8 +70,9 @@ class StreamCamera extends EventEmitter {
     };
   }
 
-  static async getJpegSignature() {
+  static async getJpegSignature(): Promise<Buffer> {
     const systemInfo = await si.system();
+
     switch (systemInfo.model) {
       case 'BCM2711':
       case 'BCM2835 - Pi 3 Model B':
@@ -79,13 +83,13 @@ class StreamCamera extends EventEmitter {
         return Buffer.from([0xff, 0xd8, 0xff, 0xdb, 0x00, 0x84, 0x00]);
       default:
         throw new Error(
-          `Could not determine JPEG signature. Unknown system model '${systemInfo.model}'`,
+          `Could not determine JPEG signature. Unknown system model '${systemInfo.model}'`
         );
     }
   }
 
   startCapture(): Promise<void> {
-    // eslint-disable-next-line no-async-promise-executor
+    // eslint-disable-next-line no-async-promise-executor, consistent-return
     return new Promise(async (resolve, reject) => {
       // TODO: refactor promise logic to be more ergonomic
       // so that we don't need to try/catch here
@@ -99,12 +103,16 @@ class StreamCamera extends EventEmitter {
           /**
            * Bit rate
            */
-          ...(this.options.bitRate ? ['--bitrate', this.options.bitRate.toString()] : []),
+          ...(this.options.bitRate
+            ? ['--bitrate', this.options.bitRate.toString()]
+            : []),
 
           /**
            * Frame rate
            */
-          ...(this.options.fps ? ['--framerate', this.options.fps.toString()] : []),
+          ...(this.options.fps
+            ? ['--framerate', this.options.fps.toString()]
+            : []),
 
           /**
            * Codec
@@ -112,7 +120,9 @@ class StreamCamera extends EventEmitter {
            * H264 or MJPEG
            *
            */
-          ...(this.options.codec ? ['--codec', this.options.codec.toString()] : []),
+          ...(this.options.codec
+            ? ['--codec', this.options.codec.toString()]
+            : []),
 
           /**
            * Sensor mode
@@ -145,7 +155,9 @@ class StreamCamera extends EventEmitter {
            * |    7 | 640x480             | 4:3          | 40-90fps    | Partial | 2x2     |
            *
            */
-          ...(this.options.sensorMode ? ['--mode', this.options.sensorMode.toString()] : []),
+          ...(this.options.sensorMode
+            ? ['--mode', this.options.sensorMode.toString()]
+            : []),
 
           /**
            * Capture time (ms)
@@ -175,9 +187,9 @@ class StreamCamera extends EventEmitter {
         this.childProcess.once('error', () =>
           reject(
             new Error(
-              "Could not start capture with StreamCamera. Are you running on a Raspberry Pi with 'raspivid' installed?",
-            ),
-          ),
+              "Could not start capture with StreamCamera. Are you running on a Raspberry Pi with 'raspivid' installed?"
+            )
+          )
         );
 
         // Wait for first data event to resolve promise
@@ -188,22 +200,29 @@ class StreamCamera extends EventEmitter {
 
         // Listen for image data events and parse MJPEG frames if codec is MJPEG
         this.childProcess.stdout.on('data', (data: Buffer) => {
-          this.streams.forEach(stream => stream.push(data));
+          this.streams.forEach((innerStream) => innerStream.push(data));
 
-          if (this.options.codec !== Codec.MJPEG) return;
+          if (this.options.codec !== Codec.MJPEG) {
+            return;
+          }
 
           stdoutBuffer = Buffer.concat([stdoutBuffer, data]);
 
           // Extract all image frames from the current buffer
+          // eslint-disable-next-line no-constant-condition
           while (true) {
             const signatureIndex = stdoutBuffer.indexOf(jpegSignature, 0);
 
             if (signatureIndex === -1) break;
 
             // Make sure the signature starts at the beginning of the buffer
-            if (signatureIndex > 0) stdoutBuffer = stdoutBuffer.slice(signatureIndex);
+            if (signatureIndex > 0)
+              stdoutBuffer = stdoutBuffer.slice(signatureIndex);
 
-            const nextSignatureIndex = stdoutBuffer.indexOf(jpegSignature, jpegSignature.length);
+            const nextSignatureIndex = stdoutBuffer.indexOf(
+              jpegSignature,
+              jpegSignature.length
+            );
 
             if (nextSignatureIndex === -1) break;
 
@@ -214,9 +233,11 @@ class StreamCamera extends EventEmitter {
         });
 
         // Listen for error events
-        this.childProcess.stdout.on('error', err => this.emit('error', err));
-        this.childProcess.stderr.on('data', data => this.emit('error', new Error(data.toString())));
-        this.childProcess.stderr.on('error', err => this.emit('error', err));
+        this.childProcess.stdout.on('error', (err) => this.emit('error', err));
+        this.childProcess.stderr.on('data', (data) =>
+          this.emit('error', new Error(data.toString()))
+        );
+        this.childProcess.stderr.on('error', (err) => this.emit('error', err));
 
         // Listen for close events
         this.childProcess.stdout.on('close', () => this.emit('close'));
@@ -226,20 +247,21 @@ class StreamCamera extends EventEmitter {
     });
   }
 
-  async stopCapture() {
+  async stopCapture(): Promise<void> {
     if (this.childProcess) {
       this.childProcess.kill();
     }
 
     // Push null to each stream to indicate EOF
     // tslint:disable-next-line no-null-keyword
-    this.streams.forEach(stream => stream.push(null));
+    this.streams.forEach((innerStream) => innerStream.push(null));
 
     this.streams = [];
   }
 
-  createStream() {
+  createStream(): stream.Readable {
     const newStream = new stream.Readable({
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       read: () => {},
     });
 
@@ -248,10 +270,14 @@ class StreamCamera extends EventEmitter {
     return newStream;
   }
 
-  takeImage() {
-    if (this.options.codec !== Codec.MJPEG) throw new Error("Codec must be 'MJPEG' to take image");
+  takeImage(): Promise<Buffer> {
+    if (this.options.codec !== Codec.MJPEG) {
+      throw new Error("Codec must be 'MJPEG' to take image");
+    }
 
-    return new Promise<Buffer>(resolve => this.once('frame', data => resolve(data)));
+    return new Promise<Buffer>((resolve) =>
+      this.once('frame', (data) => resolve(data))
+    );
   }
 }
 

@@ -1,0 +1,15 @@
+export enum ExposureMode {
+  Off = 'off',
+  Auto = 'auto',
+  Night = 'night',
+  NightPreview = 'nightpreview',
+  Backlight = 'backlight',
+  Spotlight = 'spotlight',
+  Sports = 'sports',
+  Snow = 'snow',
+  Beach = 'beach',
+  VeryLong = 'verylong',
+  FixedFps = 'fixedfps',
+  AntiShake = 'antishake',
+  Fireworks = 'fireworks',
+}
